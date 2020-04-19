@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Edumall</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-latest.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="shortcut icon" type="image/png" href="https://img.icons8.com/color/48/000000/vietnam-circular.png">
+    <style>
+        td, th{
+            border: 1px solid black;
+            
+        }
+        table{
+            display: none;
+            margin-top: 10px;
+        }
+        img{
+            width: 15px;
+            height: 15px;
+        }
+        div{
+            display: block;
+        }
+        #seeAll, #random, #search{
+            margin-top: 10px;
+            margin-left: 10px;
+            border-radius: 10px;
+            color: black;
+            font-weight: bold;
+        }
+        input{
+            border: none;
+        }
+        th{
+            background-color: #34eba2;
+        }
+        #btn-search{
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="input-group mb-3">
+        <button id="random" class="btn-success col-md-1">Random</button>
+        <button id="seeAll" class="btn-success col-md-1">SeeAll</button>
+        <input type="text" class="form-control col-md-3" id="search">
+        <button id="btn-search" class="btn"><img src="https://img.icons8.com/material-outlined/24/000000/search.png"/></button>
+    </div>
+    
+    <table id="table1" class="table table-striped">
+        <thead>
+            <th>STT</th>
+            <th>Tên khóa học</th>
+            <th>Email</th>
+            <th>Mật khẩu</th>
+        </thead>
+        <tbody id="app">
+
+        </tbody>
+    </table>
+
+    <table id="table2" class="table table-striped">
+        <thead>
+            <th>Tên khóa học</th>
+            <th>Email</th>
+            <th>Mật khẩu</th>
+        </thead>
+        <tbody id="append">
+        </tbody>
+    </table>
+
+    <script>
+        var str, accounts = [], acc_convert = [];
+        axios.get("https://axios.imfast.io/course.html")
+            .then(function(res){
+                str = res.data;
+                accounts = str.split("|");
+                for (var i = 1 ; i < accounts.length; i++){
+                    var course, email, pass;
+                    for(var j = accounts[i].length - 1; j >= 0 ; j--){
+                        if (accounts[i][j] == ']'){
+                            index = j;
+                            break;
+                        }
+                    }
+                    for(var j = accounts[i].length - 1; j >= 0 ; j--){
+                        if (accounts[i][j] == ':'){
+                            index2 = j;
+                            break;
+                        }
+                    }
+                    course = accounts[i].slice(accounts[i].indexOf('[') + 1, index );
+                    email = accounts[i].slice(index + 1 , index2 + 1);
+                    email = email.slice(email.indexOf('\n') + 1, email.length - 1).trim();
+                    pass = accounts[i].slice(index2 + 1, accounts[i].length - 1).trim();
+
+                    var courses = {
+                        course: course,
+                        email: email,
+                        pass: pass
+                    }
+                    
+                    acc_convert.push(courses);
+                    
+                }
+
+                $("#seeAll").click(function(){
+                    document.getElementById('table2').style.display = 'none';
+                    document.getElementById('table1').style.display = 'block';
+                    for (account of acc_convert){
+                        var pos = acc_convert.indexOf(account);
+                        var app = (`
+                        <tr>
+                            <td>${pos + 1}</td>
+                            <td>${account.course}</td>
+                            <td>
+                                <div>
+                                    <input id="copyEmail_${account.email}" value="${account.email}" readonly>
+                                    <button class="btn" id="btn_${account.email}"><img src="https://clipboardjs.com/assets/images/clippy.svg"/></button>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <input id="copyPass_${account.pass}" value="${account.pass}" readonly>
+                                    <button class="btn" id="btn_${account.pass}"><img src="https://clipboardjs.com/assets/images/clippy.svg"/></button>
+                                </div>
+                            </td>
+                        <tr>
+                        `);
+
+                        $('#app').append(app);
+                    }
+
+                    $(".btn").click(function(){
+                    var id = $(this).context.previousElementSibling.id;
+                    var copyText = document.getElementById(id);
+                    copyText.select();
+                    copyText.setSelectionRange(0, 99999);
+                    document.execCommand("copy");
+                });
+                });   
+            });
+
+            
+
+            var val = 0;
+            $('#random').on("click", function(){
+                $('#app').find('tr').remove();
+                var rand = Math.floor(Math.random() * 300);
+
+                document.getElementById('table1').style.display = 'none';
+                document.getElementById('table2').style.display = 'block';
+                var append = `
+                <tr>
+                    <td>${acc_convert[rand].course}</td>
+                    <td>
+                        <div class="ha">
+                            <input id="copyEmail_${acc_convert[rand].email}" value="${acc_convert[rand].email}" readonly>
+                            <button class="btn" id="btn_${acc_convert[rand].email}"><img src="https://clipboardjs.com/assets/images/clippy.svg"/></button>
+                        </div>
+                    </td>
+                    <td>
+                        <div class"ha">
+                            <input id="copyPass_${acc_convert[rand].pass}" value="${acc_convert[rand].pass}" readonly>
+                            <button class="btn" id="btn_${acc_convert[rand].pass}"><img src="https://clipboardjs.com/assets/images/clippy.svg"/></button>
+                        </div>
+                    </td>
+                <tr>
+                
+                `;
+                $("#append").html(append);
+                $(".btn").click(function(){
+                    var id = $(this).context.previousElementSibling.id;
+                    var copyText = document.getElementById(id);
+                    copyText.select();
+                    copyText.setSelectionRange(0, 99999);
+                    document.execCommand("copy");
+                });
+
+            //     $('#search').keyup(function(){
+            //     $('#app').remove();
+            //     var key = $('#search').val();
+            //     for (var item of acc_convert){
+            //         if (item.email.search(key)){
+            //             var pos = acc_convert.indexOf(item);
+
+            //             var app = (`
+            //             <tr>
+            //                 <td>${pos + 1}</td>
+            //                 <td>${item.course}</td>
+            //                 <td>
+            //                     <div>
+            //                         <input id="copyEmail_${item.email}" value="${item.email}" readonly>
+            //                         <button class="btn" id="btn_${item.email}"><img src="https://clipboardjs.com/assets/images/clippy.svg"/></button>
+            //                     </div>
+            //                 </td>
+            //                 <td>
+            //                     <div>
+            //                         <input id="copyPass_${item.pass}" value="${item.pass}" readonly>
+            //                         <button class="btn" id="btn_${item.pass}"><img src="https://clipboardjs.com/assets/images/clippy.svg"/></button>
+            //                     </div>
+            //                 </td>
+            //             <tr>
+            //             `);
+
+            //             $('#app').append(app);
+            //         }
+            //     }
+            // });
+            });
+            
+    </script>
+</body>
+</html>
